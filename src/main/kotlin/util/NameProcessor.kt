@@ -1,10 +1,9 @@
 package org.example.util
 
-import java.util.concurrent.ConcurrentMap
 import javax.lang.model.SourceVersion
 
 class NameProcessor(private val wordsMap: MutableMap<String, Int>) {
-    private val wordRegex = Regex("(?=[A-Z])")
+    private val wordRegex = Regex("(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])")
 
     private fun extractClassName(name: String): String {
         return name.substringAfterLast("/").removeSuffix(".java")
