@@ -9,6 +9,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import org.example.services.GitHubAPIService
 import org.example.util.NameProcessor
+import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
 fun main() = runBlocking {
@@ -44,6 +45,16 @@ fun main() = runBlocking {
     deferredResults.awaitAll().forEach { localMap -> 
         for ((word, count) in localMap) {
             wordStatistics.merge(word, count, Int::plus)
+        }
+    }
+    
+    // sort by value and take only top 1000 
+    val mostCommonWords = wordStatistics.toList().sortedByDescending { it.second }.take(1000).toMap()
+    
+    val file = File("most_common_words.txt")
+    file.printWriter().use { out ->
+        mostCommonWords.forEach {
+            (key, value) -> out.println("$key: $value")
         }
     }
 
