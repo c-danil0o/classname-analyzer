@@ -20,7 +20,7 @@ fun main() = runBlocking {
     val githubToken = System.getenv("GITHUB_TOKEN")
     val apiService = GitHubAPIService(githubToken)
 
-    var wordStatistics: ConcurrentHashMap<String, Int> = ConcurrentHashMap<String, Int>()
+    var wordStatistics: MutableMap<String, Int> = mutableMapOf<String, Int>()
     val deferredResults = mutableListOf<Deferred<Map<String, Int>>>()
 
     val pageMap = divideRange(1, numberOfPages, numberOfCoroutines)
@@ -40,26 +40,38 @@ fun main() = runBlocking {
             deferredResults.add(deferred)
         }
     }
-    // reduce
     
+    // Reducing results from map phase 
     deferredResults.awaitAll().forEach { localMap -> 
         for ((word, count) in localMap) {
             wordStatistics.merge(word, count, Int::plus)
         }
     }
+    // Filter out classname lengths in words
+    val classNameLength = wordStatistics.filterKeys { key -> isNumericToX(key)}
     
-    // sort by value and take only top 1000 
-    val mostCommonWords = wordStatistics.toList().sortedByDescending { it.second }.take(1000).toMap()
+    val wordStatisticsFiltered = wordStatistics.minus(classNameLength.keys)
+    // Sort by value and take only top 1000 
+    val mostCommonWords = wordStatisticsFiltered.toList().sortedByDescending { it.second }.take(1000).toMap()
     
-    val file = File("most_common_words.txt")
-    file.printWriter().use { out ->
+    // Write to file
+    val wordsFile = File("most_common_words.txt")
+    wordsFile.printWriter().use { out ->
         mostCommonWords.forEach {
             (key, value) -> out.println("$key: $value")
         }
     }
 
+    val lengthFile = File("classname_length.txt")
+    lengthFile.printWriter().use { out ->
+        classNameLength.forEach {
+                (key, value) -> out.println("$key: $value")
+        }
+    }
+
 }
 
+// Divide a range into N ranges
 fun divideRange(start: Int, end: Int, N: Int): List<Pair<Int, Int>> {
     val totalSize = end - start + 1
     val baseSize = totalSize / N
@@ -75,4 +87,9 @@ fun divideRange(start: Int, end: Int, N: Int): List<Pair<Int, Int>> {
     }
 
     return ranges
+}
+
+
+fun isNumericToX(toCheck: String): Boolean {
+    return toCheck.toDoubleOrNull() != null
 }

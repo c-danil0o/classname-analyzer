@@ -17,12 +17,14 @@ class NameProcessor(private val wordsMap: MutableMap<String, Int>) {
         for (name in names) {
             val className = extractClassName(name.path)
             if (!iSValidJavaClassName(className)) return
-            for (word in className.split(wordRegex.toPattern())) {
+            val words = className.split(wordRegex.toPattern())
+            for (word in words) {
                 if (word in wordsMap.keys) {
                     wordsMap[word] = wordsMap[word]!! + 1
                 } else {
                     wordsMap[word] = 1
                 }
+                wordsMap.merge(words.size.toString(), 1, Int::plus)
             }
             
         }
