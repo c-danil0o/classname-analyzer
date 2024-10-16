@@ -13,7 +13,7 @@ import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
 fun main() = runBlocking {
-    val numberOfPages: Int = 10
+    val numberOfPages: Int = 10 // one page contains 100 repositories
     val pagesPerCoroutine: Int = 2
     val numberOfCoroutines: Int = (numberOfPages + pagesPerCoroutine - 1) / pagesPerCoroutine
 
